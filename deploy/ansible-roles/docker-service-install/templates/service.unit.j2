@@ -1,0 +1,15 @@
+[Unit]
+Description={{ service_description }}
+Requires=docker.service
+After=docker.service
+
+[Service]
+WorkingDirectory=/opt/{{ service_name }}
+ExecStart=/usr/bin/docker compose up
+ExecStop=/usr/bin/docker compose down
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,21 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for docker-service-update
+
+- name: Place Docker Compose file (Application Definition)
+  template:
+    src: "docker-compose-{{ project_type }}.yml.j2"
+    dest: "/opt/{{ service_name }}/docker-compose.yml"
+    mode: '0644'
+
+- name: Pull latest images
+  command: docker compose pull
+  args:
+    chdir: "/opt/{{ service_name }}"
+
+- name: Start or Restart the service
+  systemd:
+    name: "{{ service_name }}"
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

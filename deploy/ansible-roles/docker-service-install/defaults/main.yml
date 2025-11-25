@@ -1,0 +1,7 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for docker-service-install
+
+# Defaults for the systemd service creation
+service_name: "default-app"
+service_description: "Default Docker Compose Application"

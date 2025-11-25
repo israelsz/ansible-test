@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  agent:
+    image: {{ agent_image | default('python') }}:{{ agent_version | default('3.9-slim') }}
+    restart: always
+    environment:
+      - AGENT_MODE=production

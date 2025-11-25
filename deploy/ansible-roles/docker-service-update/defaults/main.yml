@@ -1,0 +1,18 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for docker-service-update
+
+# Essential variables (Must match what is being used in the install role)
+service_name: "default-app"
+project_type: "api-web"
+
+# Version defaults
+nginx_version: "latest"
+api_version: "latest"
+web_version: "latest"
+agent_version: "latest"
+
+# Default Image Names
+api_image: "nginx" 
+web_image: "nginx"
+agent_image: "python"

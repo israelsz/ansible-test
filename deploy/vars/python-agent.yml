@@ -1,0 +1,9 @@
+---
+# Configuration for Python Agent
+service_name: "aq-agent"
+project_type: "python-agent"
+service_description: "Aquarius Python Agent"
+
+# Versions (Updated by CI/CD)
+agent_version: "latest"
+agent_image: "ghcr.io/your-username/repo-name"

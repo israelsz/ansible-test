@@ -1,0 +1,118 @@
+name: Deploy Python Agent
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      target_ip:
+        description: 'Target VM IP'
+        required: false
+        default: '127.0.0.1'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  VARS_FILE: deploy/ansible-roles/vars/python-agent.yml
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      # GitOps: Update the Vars File
+      - name: Update Deployment Configuration (GitOps)
+        run: |
+          NEW_TAG="sha-$(git rev-parse --short HEAD)"
+          FULL_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          
+          echo "Updating vars file: ${{ env.VARS_FILE }}"
+          
+          wget -qO /usr/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/bin/yq
+
+          # Update the variables in the vars file
+          yq -i ".agent_version = \"$NEW_TAG\"" ${{ env.VARS_FILE }}
+          yq -i ".agent_image = \"$FULL_IMAGE\"" ${{ env.VARS_FILE }}
+
+          # Git Commit
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          if [[ -n $(git status -s) ]]; then
+            git add ${{ env.VARS_FILE }}
+            git commit -m "ci: update agent version to $NEW_TAG [skip ci]"
+            git push
+            echo " -- Configuration pushed to repo -- "
+          else
+            echo "No changes detected."
+          fi
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "StrictHostKeyChecking no" >> ~/.ssh/config
+
+      - name: Generate Inventory
+        run: |
+          TARGET_IP="${{ inputs.target_ip }}"
+          if [ -z "$TARGET_IP" ]; then TARGET_IP="127.0.0.1"; fi
+          
+          mkdir -p deploy/ansible-roles/inventory
+          echo "[servers]" > deploy/ansible-roles/inventory/hosts.ini
+          echo "aq-dev-python-agent ansible_host=$TARGET_IP ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa" >> deploy/ansible-roles/inventory/hosts.ini
+
+      # Role 1: Deploy Infrastructure
+      - name: Deploy Infrastructure (Role 1)
+        env:
+          ANSIBLE_ROLES_PATH: deploy/ansible-roles/roles
+        run: |
+          ansible-playbook -i deploy/ansible-roles/inventory/hosts.ini \
+            deploy/ansible-roles/roles/docker-service-install/tests/test.yml \
+            -e @${{ env.VARS_FILE }}
+
+      # Role 2: Deploy Application
+      - name: Deploy Application (Role 2)
+        env:
+          ANSIBLE_ROLES_PATH: deploy/ansible-roles/roles
+        run: |
+          ansible-playbook -i deploy/ansible-roles/inventory/hosts.ini \
+            deploy/ansible-roles/roles/docker-service-update/tests/test.yml \
+            -e @${{ env.VARS_FILE }}
