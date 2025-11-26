@@ -55,7 +55,7 @@ jobs:
       # GitOps: Update the Vars File
       - name: Update Deployment Configuration
         run: |
-          NEW_TAG="sha-$(git rev-parse --short HEAD)"
+          NEW_TAG="agent-$(git rev-parse --short HEAD)"
           FULL_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
           
           echo "Updating vars file: ${{ env.VARS_FILE }}"
@@ -105,7 +105,7 @@ jobs:
           ANSIBLE_ROLES_PATH: deploy/ansible-roles
         run: |
           ansible-playbook -i deploy/ansible-roles/inventory/hosts.ini \
-            deploy/ansible-roles/roles/docker-service-install/tests/test.yml \
+            deploy/ansible-roles/docker-service-install/tests/test.yml \
             -e @${{ env.VARS_FILE }}
 
       # Role 2: Deploy Application
@@ -114,5 +114,5 @@ jobs:
           ANSIBLE_ROLES_PATH: deploy/ansible-roles
         run: |
           ansible-playbook -i deploy/ansible-roles/inventory/hosts.ini \
-            deploy/ansible-roles/roles/docker-service-update/tests/test.yml \
+            deploy/ansible-roles/docker-service-update/tests/test.yml \
             -e @${{ env.VARS_FILE }}
