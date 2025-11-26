@@ -1,0 +1,9 @@
+---
+# Deploy Playbook
+- name: Service Deployment
+  hosts: all
+  become: yes
+  
+  roles:
+    - role: docker-service-install
+    - role: docker-service-update

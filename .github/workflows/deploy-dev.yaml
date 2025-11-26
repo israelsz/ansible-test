@@ -99,20 +99,8 @@ jobs:
           echo "[servers]" > deploy/ansible-roles/inventory/hosts.ini
           echo "aq-dev-python-agent ansible_host=$TARGET_IP ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa" >> deploy/ansible-roles/inventory/hosts.ini
 
-      # Role 1: Deploy Infrastructure
-      - name: Deploy Infrastructure
-        env:
-          ANSIBLE_ROLES_PATH: deploy/ansible-roles
+      - name: Deploy Service
         run: |
           ansible-playbook -i deploy/ansible-roles/inventory/hosts.ini \
-            deploy/ansible-roles/docker-service-install/tests/test.yml \
-            -e @${{ env.VARS_FILE }}
-
-      # Role 2: Deploy Application
-      - name: Deploy Application
-        env:
-          ANSIBLE_ROLES_PATH: deploy/ansible-roles
-        run: |
-          ansible-playbook -i deploy/ansible-roles/inventory/hosts.ini \
-            deploy/ansible-roles/docker-service-update/tests/test.yml \
+            deploy/ansible-roles/deploy.yml \
             -e @${{ env.VARS_FILE }}

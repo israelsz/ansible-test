@@ -12,6 +12,7 @@
       - lsb-release
     state: present
     update_cache: yes
+    cache_valid_time: 3600 # seconds
 
 - name: Add Docker GPG key
   apt_key:
@@ -37,6 +38,7 @@
       - docker-compose-plugin
     state: present
     update_cache: yes
+    cache_valid_time: 3600 # seconds
 
 - name: Create service directory
   file:
