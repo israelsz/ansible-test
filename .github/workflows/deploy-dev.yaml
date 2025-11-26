@@ -42,7 +42,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest
-            type=sha,format=short
+            type=sha,format=short,prefix=agent-
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
@@ -73,7 +73,7 @@ jobs:
           
           if [[ -n $(git status -s) ]]; then
             git add ${{ env.VARS_FILE }}
-            git commit -m "ci: update agent version to $NEW_TAG [skip ci]"
+            git commit -m "ci: update agent version to $NEW_TAG"
             git push
             echo " -- Configuration pushed to repo -- "
           else
@@ -93,7 +93,7 @@ jobs:
       - name: Generate Inventory
         run: |
           TARGET_IP="${{ inputs.target_ip }}"
-          if [ -z "$TARGET_IP" ]; then TARGET_IP="127.0.0.1"; fi
+          if [ -z "$TARGET_IP" ]; then TARGET_IP="161.153.207.92"; fi
           
           mkdir -p deploy/ansible-roles/inventory
           echo "[servers]" > deploy/ansible-roles/inventory/hosts.ini
