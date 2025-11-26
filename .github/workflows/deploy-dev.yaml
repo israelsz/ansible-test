@@ -53,15 +53,15 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       # GitOps: Update the Vars File
-      - name: Update Deployment Configuration (GitOps)
+      - name: Update Deployment Configuration
         run: |
           NEW_TAG="sha-$(git rev-parse --short HEAD)"
           FULL_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
           
           echo "Updating vars file: ${{ env.VARS_FILE }}"
           
-          wget -qO /usr/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          chmod +x /usr/bin/yq
+          sudo wget -qO /usr/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/bin/yq
 
           # Update the variables in the vars file
           yq -i ".agent_version = \"$NEW_TAG\"" ${{ env.VARS_FILE }}
@@ -100,7 +100,7 @@ jobs:
           echo "aq-dev-python-agent ansible_host=$TARGET_IP ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa" >> deploy/ansible-roles/inventory/hosts.ini
 
       # Role 1: Deploy Infrastructure
-      - name: Deploy Infrastructure (Role 1)
+      - name: Deploy Infrastructure
         env:
           ANSIBLE_ROLES_PATH: deploy/ansible-roles/roles
         run: |
@@ -109,7 +109,7 @@ jobs:
             -e @${{ env.VARS_FILE }}
 
       # Role 2: Deploy Application
-      - name: Deploy Application (Role 2)
+      - name: Deploy Application
         env:
           ANSIBLE_ROLES_PATH: deploy/ansible-roles/roles
         run: |
