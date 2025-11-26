@@ -8,12 +8,12 @@ on:
       target_ip:
         description: 'Target VM IP'
         required: false
-        default: '127.0.0.1'
+        default: '161.153.207.92'
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  VARS_FILE: deploy/ansible-roles/vars/python-agent.yml
+  VARS_FILE: deploy/vars/python-agent.yml
 
 jobs:
   build-and-deploy:
@@ -102,7 +102,7 @@ jobs:
       # Role 1: Deploy Infrastructure
       - name: Deploy Infrastructure
         env:
-          ANSIBLE_ROLES_PATH: deploy/ansible-roles/roles
+          ANSIBLE_ROLES_PATH: deploy/ansible-roles
         run: |
           ansible-playbook -i deploy/ansible-roles/inventory/hosts.ini \
             deploy/ansible-roles/roles/docker-service-install/tests/test.yml \
@@ -111,7 +111,7 @@ jobs:
       # Role 2: Deploy Application
       - name: Deploy Application
         env:
-          ANSIBLE_ROLES_PATH: deploy/ansible-roles/roles
+          ANSIBLE_ROLES_PATH: deploy/ansible-roles
         run: |
           ansible-playbook -i deploy/ansible-roles/inventory/hosts.ini \
             deploy/ansible-roles/roles/docker-service-update/tests/test.yml \
