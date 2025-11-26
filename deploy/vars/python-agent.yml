@@ -4,5 +4,5 @@ service_name: "aq-agent"
 project_type: "python-agent"
 service_description: "Aquarius Python Agent"
 # Versions (Updated by CI/CD)
-agent_version: "agent-b906353"
+agent_version: "agent-98d32ed"
 agent_image: "ghcr.io/israelsz/ansible-test"
