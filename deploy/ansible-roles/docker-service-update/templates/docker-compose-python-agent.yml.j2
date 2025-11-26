@@ -4,5 +4,7 @@ services:
   agent:
     image: {{ agent_image | default('python') }}:{{ agent_version | default('3.9-slim') }}
     restart: always
+    ports:
+      - "5000:5000"
     environment:
       - AGENT_MODE=production
